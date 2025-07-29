@@ -66,5 +66,12 @@
         };
       });
       # --- END NEW SECTION ---
+
+      apps = forEachSupportedSystem ({ pkgs }: {
+        cco = {
+          type = "app";
+          program = "${inputs.self.packages.${pkgs.system}.default}/bin/cco";
+        };
+      });
     };
 }
