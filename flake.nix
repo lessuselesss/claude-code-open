@@ -41,7 +41,6 @@
         };
       });
 
-      # --- NEW SECTION FOR PACKAGES ---
       packages = forEachSupportedSystem ({ pkgs }: {
         default = pkgs.buildGoModule {
           pname = "claude-code-open";
@@ -55,17 +54,14 @@
           vendorHash = "sha256-rBDPd2E2zNUiXImEYkudUWiGNJcKFWQ+vkK8WoHJB1I=";
 
           # Go build flags
-          # Go build flags
           ldflags = [ "-s" "-w" ];
 
-          # Install the binary with the desired name
           installPhase = ''
             mkdir -p $out/bin
-            find . -type f -executable -exec mv {} $out/bin/cco \; # Find the executable and move it
+            cp $GOPATH/bin/claude-code-open $out/bin/cco
           '';
         };
       });
-      # --- END NEW SECTION ---
 
       apps = forEachSupportedSystem ({ pkgs }: {
         cco = {
