@@ -1,0 +1,50 @@
+name: Sync and Build
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * *' # Run daily at midnight UTC
+
+jobs:
+  sync-and-build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 # Fetch all history for merge
+
+    - name: Setup Nix
+      uses: cachix/install-nix-action@v22
+      with:
+        nix_path: nixpkgs=channel:nixos-unstable
+
+    - name: Configure Git
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+
+    - name: Add upstream remote
+      run: |
+        git remote add upstream https://github.com/Davincible/claude-code-open.git || true # Add if not exists
+
+    - name: Fetch upstream
+      run: git fetch upstream
+
+    - name: Merge upstream into master
+      run: git merge upstream/master -m "Merge upstream/master into master" || true # Allow merge conflicts to be handled manually if they occur
+
+    - name: Update Nix flake
+      run: nix flake update
+
+    - name: Build package
+      run: nix build
+
+    - name: Commit and push changes
+      run: |
+        git add .
+        git diff --staged --quiet || git commit -m "Automated: Sync with upstream, update flake, and build"
+        git push
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
