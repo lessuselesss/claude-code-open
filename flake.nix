@@ -47,19 +47,21 @@
           pname = "claude-code-open";
           version = "0.3.0"; # You might want to make this dynamic, e.g., from git describe
           src = ./.; # Source is the current directory
+          mainPackage = "./cmd";
 
           # IMPORTANT: You need to calculate this hash.
           # Run `nix build .#claude-code-open` once, it will fail and tell you the correct hash.
           # Or, run `nix-prefetch-go --mod-file go.mod` in the project directory.
-          vendorHash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="; # REPLACE THIS HASH
+          vendorHash = "sha256-rBDPd2E2zNUiXImEYkudUWiGNJcKFWQ+vkK8WoHJB1I=";
 
+          # Go build flags
           # Go build flags
           ldflags = [ "-s" "-w" ];
 
           # Install the binary with the desired name
           installPhase = ''
             mkdir -p $out/bin
-            mv $src/claude-code-open $out/bin/cco
+            find . -type f -executable -exec mv {} $out/bin/cco \; # Find the executable and move it
           '';
         };
       });
