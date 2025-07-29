@@ -33,7 +33,7 @@
             golangci-lint
 
             # Task runner
-            task
+            go-task
 
             # Hot reload for Go development
             air
