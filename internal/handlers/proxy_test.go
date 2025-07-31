@@ -293,6 +293,7 @@ type MockProvider struct {
 func (m *MockProvider) Name() string                                 { return "mock" }
 func (m *MockProvider) SupportsStreaming() bool                      { return true }
 func (m *MockProvider) GetEndpoint() string                          { return "mock" }
+func (m *MockProvider) GetAPIKey() string                          { return "mock-key" }
 func (m *MockProvider) SetAPIKey(key string)                         {}
 func (m *MockProvider) IsStreaming(headers map[string][]string) bool { return false }
 func (m *MockProvider) TransformStream(chunk []byte, state *providers.StreamState) ([]byte, error) {

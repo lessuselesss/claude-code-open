@@ -4,22 +4,20 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/Davincible/claude-code-open/internal/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestGeminiProvider_BasicMethods(t *testing.T) {
-	provider := NewGeminiProvider()
+	provider := NewGeminiProvider(&config.Provider{Name: "gemini"})
 
 	assert.Equal(t, "gemini", provider.Name())
 	assert.True(t, provider.SupportsStreaming())
-
-	provider.SetAPIKey("test-key")
-	assert.Equal(t, "test-key", provider.apiKey)
 }
 
 func TestGeminiProvider_IsStreaming(t *testing.T) {
-	provider := NewGeminiProvider()
+	provider := NewGeminiProvider(&config.Provider{Name: "gemini"})
 
 	tests := []struct {
 		name     string
@@ -58,7 +56,7 @@ func TestGeminiProvider_IsStreaming(t *testing.T) {
 }
 
 func TestGeminiProvider_TransformRequest(t *testing.T) {
-	provider := NewGeminiProvider()
+	provider := NewGeminiProvider(&config.Provider{Name: "gemini"})
 
 	// Test Anthropic to Gemini request transformation
 	anthropicRequest := map[string]any{
@@ -123,7 +121,7 @@ func TestGeminiProvider_TransformRequest(t *testing.T) {
 }
 
 func TestGeminiProvider_Transform(t *testing.T) {
-	provider := NewGeminiProvider()
+	provider := NewGeminiProvider(&config.Provider{Name: "gemini"})
 
 	geminiResponse := map[string]any{
 		"responseId":   "gemini-response-123",
@@ -197,7 +195,7 @@ func TestGeminiProvider_Transform(t *testing.T) {
 }
 
 func TestGeminiProvider_ConvertStopReason(t *testing.T) {
-	provider := NewGeminiProvider()
+	provider := NewGeminiProvider(&config.Provider{Name: "gemini"})
 
 	tests := []struct {
 		geminiReason      string
@@ -226,7 +224,7 @@ func TestGeminiProvider_ConvertStopReason(t *testing.T) {
 }
 
 func TestGeminiProvider_FunctionCallsTransform(t *testing.T) {
-	provider := NewGeminiProvider()
+	provider := NewGeminiProvider(&config.Provider{Name: "gemini"})
 
 	geminiResponse := map[string]any{
 		"responseId":   "gemini-response-123",
@@ -309,7 +307,7 @@ func TestGeminiProvider_FunctionCallsTransform(t *testing.T) {
 }
 
 func TestGeminiProvider_ErrorHandling(t *testing.T) {
-	provider := NewGeminiProvider()
+	provider := NewGeminiProvider(&config.Provider{Name: "gemini"})
 
 	errorResponse := map[string]any{
 		"error": map[string]any{
@@ -338,7 +336,7 @@ func TestGeminiProvider_ErrorHandling(t *testing.T) {
 }
 
 func TestGeminiProvider_TransformStream(t *testing.T) {
-	provider := NewGeminiProvider()
+	provider := NewGeminiProvider(&config.Provider{Name: "gemini"})
 	state := &StreamState{}
 
 	// Test message start chunk
@@ -404,7 +402,7 @@ func TestGeminiProvider_TransformStream(t *testing.T) {
 }
 
 func TestGeminiProvider_StreamingFunctionCalls(t *testing.T) {
-	provider := NewGeminiProvider()
+	provider := NewGeminiProvider(&config.Provider{Name: "gemini"})
 	state := &StreamState{}
 
 	// Function call chunk
@@ -448,7 +446,7 @@ func TestGeminiProvider_StreamingFunctionCalls(t *testing.T) {
 }
 
 func TestGeminiProvider_ConvertUsage(t *testing.T) {
-	provider := NewGeminiProvider()
+	provider := NewGeminiProvider(&config.Provider{Name: "gemini"})
 
 	usage := map[string]any{
 		"promptTokenCount":     100,
@@ -463,7 +461,7 @@ func TestGeminiProvider_ConvertUsage(t *testing.T) {
 }
 
 func TestGeminiProvider_MapGeminiErrorType(t *testing.T) {
-	provider := NewGeminiProvider()
+	provider := NewGeminiProvider(&config.Provider{Name: "gemini"})
 
 	tests := []struct {
 		geminiType        string
@@ -489,7 +487,7 @@ func TestGeminiProvider_MapGeminiErrorType(t *testing.T) {
 }
 
 func TestGeminiProvider_EmptyContent(t *testing.T) {
-	provider := NewGeminiProvider()
+	provider := NewGeminiProvider(&config.Provider{Name: "gemini"})
 
 	geminiResponse := map[string]any{
 		"responseId":   "gemini-response-123",

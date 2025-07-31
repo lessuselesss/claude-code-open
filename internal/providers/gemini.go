@@ -6,22 +6,22 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
+	"github.com/Davincible/claude-code-open/internal/config"
 )
 
 type GeminiProvider struct {
-	name     string
-	endpoint string
-	apiKey   string
+	Provider *config.Provider
 }
 
-func NewGeminiProvider() *GeminiProvider {
+func NewGeminiProvider(provider *config.Provider) *GeminiProvider {
 	return &GeminiProvider{
-		name: "gemini",
+		Provider: provider,
 	}
 }
 
 func (p *GeminiProvider) Name() string {
-	return p.name
+	return p.Provider.Name
 }
 
 func (p *GeminiProvider) SupportsStreaming() bool {
@@ -29,15 +29,11 @@ func (p *GeminiProvider) SupportsStreaming() bool {
 }
 
 func (p *GeminiProvider) GetEndpoint() string {
-	if p.endpoint == "" {
-		return "https://generativelanguage.googleapis.com/v1beta/models"
-	}
-
-	return p.endpoint
+	return p.Provider.APIBase
 }
 
-func (p *GeminiProvider) SetAPIKey(key string) {
-	p.apiKey = key
+func (p *GeminiProvider) GetAPIKey() string {
+	return p.Provider.GetAPIKey()
 }
 
 func (p *GeminiProvider) IsStreaming(headers map[string][]string) bool {

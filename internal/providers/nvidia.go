@@ -4,22 +4,22 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+
+	"github.com/Davincible/claude-code-open/internal/config"
 )
 
 type NvidiaProvider struct {
-	name     string
-	endpoint string
-	apiKey   string
+	Provider *config.Provider
 }
 
-func NewNvidiaProvider() *NvidiaProvider {
+func NewNvidiaProvider(provider *config.Provider) *NvidiaProvider {
 	return &NvidiaProvider{
-		name: "nvidia",
+		Provider: provider,
 	}
 }
 
 func (p *NvidiaProvider) Name() string {
-	return p.name
+	return p.Provider.Name
 }
 
 func (p *NvidiaProvider) SupportsStreaming() bool {
@@ -27,15 +27,11 @@ func (p *NvidiaProvider) SupportsStreaming() bool {
 }
 
 func (p *NvidiaProvider) GetEndpoint() string {
-	if p.endpoint == "" {
-		return "https://integrate.api.nvidia.com/v1/chat/completions"
-	}
-
-	return p.endpoint
+	return p.Provider.APIBase
 }
 
-func (p *NvidiaProvider) SetAPIKey(key string) {
-	p.apiKey = key
+func (p *NvidiaProvider) GetAPIKey() string {
+	return p.Provider.GetAPIKey()
 }
 
 func (p *NvidiaProvider) IsStreaming(headers map[string][]string) bool {

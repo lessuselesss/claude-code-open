@@ -168,7 +168,7 @@ func runConfigShow(cmd *cobra.Command, _ []string) error {
 	for _, provider := range cfg.Providers {
 		fmt.Printf("  - Name: %s\n", provider.Name)
 		fmt.Printf("    URL: %s\n", provider.APIBase)
-		fmt.Printf("    API Key: %s\n", maskString(provider.APIKey))
+		fmt.Printf("    API Key: %s\n", maskString(provider.APIKey.(string)))
 
 		if len(provider.DefaultModels) > 0 {
 			fmt.Printf("    Default Models: %v\n", provider.DefaultModels)

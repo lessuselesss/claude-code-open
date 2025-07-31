@@ -5,12 +5,13 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/Davincible/claude-code-open/internal/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestOpenRouterProvider_TransformRequest(t *testing.T) {
-	provider := NewOpenRouterProvider()
+	provider := NewOpenRouterProvider(&config.Provider{Name: "openrouter"})
 
 	// Test Anthropic to OpenAI/OpenRouter request transformation
 	anthropicRequest := map[string]any{
@@ -82,7 +83,7 @@ func TestOpenRouterProvider_TransformRequest(t *testing.T) {
 }
 
 func TestOpenRouterProvider_Transform(t *testing.T) {
-	provider := NewOpenRouterProvider()
+	provider := NewOpenRouterProvider(&config.Provider{Name: "openrouter"})
 
 	// Test OpenRouter response format
 	openRouterResponse := map[string]any{
@@ -141,17 +142,17 @@ func TestOpenRouterProvider_Transform(t *testing.T) {
 }
 
 func TestOpenRouterProvider_SupportsStreaming(t *testing.T) {
-	provider := NewOpenRouterProvider()
+	provider := NewOpenRouterProvider(&config.Provider{Name: "openrouter"})
 	assert.True(t, provider.SupportsStreaming(), "OpenRouter should support streaming")
 }
 
 func TestOpenRouterProvider_Name(t *testing.T) {
-	provider := NewOpenRouterProvider()
+	provider := NewOpenRouterProvider(&config.Provider{Name: "openrouter"})
 	assert.Equal(t, "openrouter", provider.Name(), "provider name should be openrouter")
 }
 
 func TestOpenRouterProvider_IsStreaming(t *testing.T) {
-	provider := NewOpenRouterProvider()
+	provider := NewOpenRouterProvider(&config.Provider{Name: "openrouter"})
 
 	testCases := []struct {
 		name     string
@@ -190,7 +191,7 @@ func TestOpenRouterProvider_IsStreaming(t *testing.T) {
 }
 
 func TestOpenRouterProvider_TransformStream(t *testing.T) {
-	provider := NewOpenRouterProvider()
+	provider := NewOpenRouterProvider(&config.Provider{Name: "openrouter"})
 	state := &StreamState{}
 
 	// Test streaming chunk
@@ -221,7 +222,7 @@ func TestOpenRouterProvider_TransformStream(t *testing.T) {
 }
 
 func TestOpenRouterProvider_ConvertStopReason(t *testing.T) {
-	provider := NewOpenRouterProvider()
+	provider := NewOpenRouterProvider(&config.Provider{Name: "openrouter"})
 
 	testCases := []struct {
 		openaiReason    string
@@ -246,7 +247,7 @@ func TestOpenRouterProvider_ConvertStopReason(t *testing.T) {
 }
 
 func TestOpenRouterProvider_ToolCallsTransform(t *testing.T) {
-	provider := NewOpenRouterProvider()
+	provider := NewOpenRouterProvider(&config.Provider{Name: "openrouter"})
 
 	// Test OpenRouter response with tool calls
 	openRouterResponse := map[string]any{
@@ -313,7 +314,7 @@ func TestOpenRouterProvider_ToolCallsTransform(t *testing.T) {
 }
 
 func TestOpenRouterProvider_WebSearchAnnotations(t *testing.T) {
-	provider := NewOpenRouterProvider()
+	provider := NewOpenRouterProvider(&config.Provider{Name: "openrouter"})
 
 	// Test OpenRouter response with web search annotations
 	openRouterResponse := map[string]any{
@@ -378,7 +379,7 @@ func TestOpenRouterProvider_WebSearchAnnotations(t *testing.T) {
 }
 
 func TestOpenRouterProvider_StreamingToolCalls(t *testing.T) {
-	provider := NewOpenRouterProvider()
+	provider := NewOpenRouterProvider(&config.Provider{Name: "openrouter"})
 	state := &StreamState{}
 
 	// Test first chunk with tool call start

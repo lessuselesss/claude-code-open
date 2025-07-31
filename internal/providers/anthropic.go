@@ -2,22 +2,22 @@ package providers
 
 import (
 	"strings"
+
+	"github.com/Davincible/claude-code-open/internal/config"
 )
 
 type AnthropicProvider struct {
-	name     string
-	endpoint string
-	apiKey   string
+	Provider *config.Provider
 }
 
-func NewAnthropicProvider() *AnthropicProvider {
+func NewAnthropicProvider(provider *config.Provider) *AnthropicProvider {
 	return &AnthropicProvider{
-		name: "anthropic",
+		Provider: provider,
 	}
 }
 
 func (p *AnthropicProvider) Name() string {
-	return p.name
+	return p.Provider.Name
 }
 
 func (p *AnthropicProvider) SupportsStreaming() bool {
@@ -25,11 +25,11 @@ func (p *AnthropicProvider) SupportsStreaming() bool {
 }
 
 func (p *AnthropicProvider) GetEndpoint() string {
-	return p.endpoint
+	return p.Provider.APIBase
 }
 
-func (p *AnthropicProvider) SetAPIKey(key string) {
-	p.apiKey = key
+func (p *AnthropicProvider) GetAPIKey() string {
+	return p.Provider.GetAPIKey()
 }
 
 func (p *AnthropicProvider) IsStreaming(headers map[string][]string) bool {

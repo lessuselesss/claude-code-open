@@ -4,22 +4,25 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/Davincible/claude-code-open/internal/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestNvidiaProvider_BasicMethods(t *testing.T) {
-	provider := NewNvidiaProvider()
+	cfg := &config.Config{Providers: []config.Provider{{Name: "nvidia", APIKey: "test-key"}}}
+	cfgMgr := config.NewManager("")
+	cfgMgr.ApplyDefaults(cfg)
+	provider := NewNvidiaProvider(&cfg.Providers[0])
 
 	assert.Equal(t, "nvidia", provider.Name())
 	assert.True(t, provider.SupportsStreaming())
 
-	provider.SetAPIKey("test-key")
-	assert.Equal(t, "test-key", provider.apiKey)
+	assert.Equal(t, "test-key", provider.GetAPIKey())
 }
 
 func TestNvidiaProvider_IsStreaming(t *testing.T) {
-	provider := NewNvidiaProvider()
+	provider := NewNvidiaProvider(&config.Provider{Name: "nvidia"})
 
 	tests := []struct {
 		name     string
@@ -58,11 +61,11 @@ func TestNvidiaProvider_IsStreaming(t *testing.T) {
 }
 
 func TestNvidiaProvider_TransformRequest(t *testing.T) {
-	provider := NewNvidiaProvider()
+	provider := NewNvidiaProvider(&config.Provider{Name: "nvidia"})
 
 	// Test Anthropic to OpenAI/Nvidia request transformation
 	anthropicRequest := map[string]any{
-		"model":      "claude-3-5-sonnet",
+		"model":      "nvidia/llama-3.1-nemotron-70b-instruct",
 		"system":     "You are a helpful assistant",
 		"max_tokens": 100,
 		"messages": []any{
@@ -130,7 +133,7 @@ func TestNvidiaProvider_TransformRequest(t *testing.T) {
 }
 
 func TestNvidiaProvider_Transform(t *testing.T) {
-	provider := NewNvidiaProvider()
+	provider := NewNvidiaProvider(&config.Provider{Name: "nvidia"})
 
 	nvidiaResponse := map[string]any{
 		"id":      "chatcmpl-nvidia-123",
@@ -202,7 +205,7 @@ func TestNvidiaProvider_Transform(t *testing.T) {
 }
 
 func TestNvidiaProvider_ConvertStopReason(t *testing.T) {
-	provider := NewNvidiaProvider()
+	provider := NewNvidiaProvider(&config.Provider{Name: "nvidia"})
 
 	tests := []struct {
 		nvidiaReason      string
@@ -226,7 +229,7 @@ func TestNvidiaProvider_ConvertStopReason(t *testing.T) {
 }
 
 func TestNvidiaProvider_ToolCallsTransform(t *testing.T) {
-	provider := NewNvidiaProvider()
+	provider := NewNvidiaProvider(&config.Provider{Name: "nvidia"})
 
 	nvidiaResponse := map[string]any{
 		"id":      "chatcmpl-nvidia-123",
@@ -311,7 +314,7 @@ func TestNvidiaProvider_ToolCallsTransform(t *testing.T) {
 }
 
 func TestNvidiaProvider_ErrorHandling(t *testing.T) {
-	provider := NewNvidiaProvider()
+	provider := NewNvidiaProvider(&config.Provider{Name: "nvidia"})
 
 	errorResponse := map[string]any{
 		"error": map[string]any{
@@ -340,7 +343,7 @@ func TestNvidiaProvider_ErrorHandling(t *testing.T) {
 }
 
 func TestNvidiaProvider_TransformStream(t *testing.T) {
-	provider := NewNvidiaProvider()
+	provider := NewNvidiaProvider(&config.Provider{Name: "nvidia"})
 	state := &StreamState{}
 
 	// Test message start chunk
@@ -424,7 +427,7 @@ func TestNvidiaProvider_TransformStream(t *testing.T) {
 }
 
 func TestNvidiaProvider_StreamingToolCalls(t *testing.T) {
-	provider := NewNvidiaProvider()
+	provider := NewNvidiaProvider(&config.Provider{Name: "nvidia"})
 	state := &StreamState{}
 
 	// First chunk with tool call start
@@ -496,7 +499,7 @@ func TestNvidiaProvider_StreamingToolCalls(t *testing.T) {
 }
 
 func TestNvidiaProvider_ConvertUsage(t *testing.T) {
-	provider := NewNvidiaProvider()
+	provider := NewNvidiaProvider(&config.Provider{Name: "nvidia"})
 
 	usage := map[string]any{
 		"prompt_tokens":     100,
@@ -517,7 +520,7 @@ func TestNvidiaProvider_ConvertUsage(t *testing.T) {
 }
 
 func TestNvidiaProvider_ConvertToolCallID(t *testing.T) {
-	provider := NewNvidiaProvider()
+	provider := NewNvidiaProvider(&config.Provider{Name: "nvidia"})
 
 	tests := []struct {
 		input    string
@@ -537,7 +540,7 @@ func TestNvidiaProvider_ConvertToolCallID(t *testing.T) {
 }
 
 func TestNvidiaProvider_MapNvidiaErrorType(t *testing.T) {
-	provider := NewNvidiaProvider()
+	provider := NewNvidiaProvider(&config.Provider{Name: "nvidia"})
 
 	tests := []struct {
 		nvidiaType        string

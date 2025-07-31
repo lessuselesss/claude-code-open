@@ -4,22 +4,22 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+
+	"github.com/Davincible/claude-code-open/internal/config"
 )
 
 type OpenAIProvider struct {
-	name     string
-	endpoint string
-	apiKey   string
+	Provider *config.Provider
 }
 
-func NewOpenAIProvider() *OpenAIProvider {
+func NewOpenAIProvider(provider *config.Provider) *OpenAIProvider {
 	return &OpenAIProvider{
-		name: "openai",
+		Provider: provider,
 	}
 }
 
 func (p *OpenAIProvider) Name() string {
-	return p.name
+	return p.Provider.Name
 }
 
 func (p *OpenAIProvider) SupportsStreaming() bool {
@@ -27,15 +27,11 @@ func (p *OpenAIProvider) SupportsStreaming() bool {
 }
 
 func (p *OpenAIProvider) GetEndpoint() string {
-	if p.endpoint == "" {
-		p.endpoint = "https://api.openai.com/v1/chat/completions"
-	}
-
-	return p.endpoint
+	return p.Provider.APIBase
 }
 
-func (p *OpenAIProvider) SetAPIKey(key string) {
-	p.apiKey = key
+func (p *OpenAIProvider) GetAPIKey() string {
+	return p.Provider.GetAPIKey()
 }
 
 func (p *OpenAIProvider) IsStreaming(headers map[string][]string) bool {

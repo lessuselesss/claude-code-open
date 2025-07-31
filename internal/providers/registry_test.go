@@ -3,13 +3,14 @@ package providers
 import (
 	"testing"
 
+	"github.com/Davincible/claude-code-open/internal/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestRegistry_RegisterAndGet(t *testing.T) {
 	registry := NewRegistry()
-	provider := NewOpenRouterProvider()
+	provider := NewOpenRouterProvider(&config.Provider{Name: "openrouter"})
 
 	// Register provider
 	registry.Register(provider)
@@ -22,7 +23,7 @@ func TestRegistry_RegisterAndGet(t *testing.T) {
 
 func TestRegistry_GetByDomain(t *testing.T) {
 	registry := NewRegistry()
-	registry.Initialize()
+	registry.Initialize([]config.Provider{{Name: "openrouter"}, {Name: "openai"}, {Name: "anthropic"}, {Name: "nvidia"}, {Name: "gemini"}})
 
 	testCases := []struct {
 		domain   string
@@ -47,7 +48,7 @@ func TestRegistry_GetByDomain(t *testing.T) {
 
 func TestRegistry_GetByDomain_InvalidURL(t *testing.T) {
 	registry := NewRegistry()
-	registry.Initialize()
+	registry.Initialize([]config.Provider{{Name: "openrouter"}, {Name: "openai"}, {Name: "anthropic"}, {Name: "nvidia"}, {Name: "gemini"}})
 
 	_, err := registry.GetByDomain("invalid-url")
 	assert.Error(t, err, "should get error for invalid URL")
@@ -55,7 +56,7 @@ func TestRegistry_GetByDomain_InvalidURL(t *testing.T) {
 
 func TestRegistry_GetByDomain_UnknownDomain(t *testing.T) {
 	registry := NewRegistry()
-	registry.Initialize()
+	registry.Initialize([]config.Provider{{Name: "openrouter"}, {Name: "openai"}, {Name: "anthropic"}, {Name: "nvidia"}, {Name: "gemini"}})
 
 	_, err := registry.GetByDomain("https://unknown-provider.com/api")
 	assert.Error(t, err, "should get error for unknown domain")
@@ -63,7 +64,7 @@ func TestRegistry_GetByDomain_UnknownDomain(t *testing.T) {
 
 func TestRegistry_List(t *testing.T) {
 	registry := NewRegistry()
-	registry.Initialize()
+	registry.Initialize([]config.Provider{{Name: "openrouter"}, {Name: "openai"}, {Name: "anthropic"}, {Name: "nvidia"}, {Name: "gemini"}})
 
 	providers := registry.List()
 

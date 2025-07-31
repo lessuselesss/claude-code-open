@@ -16,10 +16,7 @@ func NewHealthHandler(logger *slog.Logger) *HealthHandler {
 }
 
 func (h *HealthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusOK)
-
-	if _, err := w.Write([]byte("OK")); err != nil {
-		h.logger.Error("Failed to write health check response", "error", err)
-	}
+	w.Write([]byte("OK"))
 }
+

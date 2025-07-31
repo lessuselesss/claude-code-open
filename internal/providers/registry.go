@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"net/url"
 	"strings"
+
+	"github.com/Davincible/claude-code-open/internal/config"
 )
 
-// Provider interface defines the contract for all LLM providers
 type Provider interface {
 	Name() string
 	SupportsStreaming() bool
@@ -15,7 +16,7 @@ type Provider interface {
 	TransformStream(chunk []byte, state *StreamState) ([]byte, error)
 	IsStreaming(headers map[string][]string) bool
 	GetEndpoint() string
-	SetAPIKey(key string)
+	GetAPIKey() string
 }
 
 // StreamState tracks streaming conversion state
@@ -106,10 +107,20 @@ func (r *Registry) List() []string {
 }
 
 // Initialize registers all built-in providers
-func (r *Registry) Initialize() {
-	r.Register(NewOpenRouterProvider())
-	r.Register(NewOpenAIProvider())
-	r.Register(NewAnthropicProvider())
-	r.Register(NewNvidiaProvider())
-	r.Register(NewGeminiProvider())
+func (r *Registry) Initialize(cfgProviders []config.Provider) {
+	for i := range cfgProviders {
+		cfgProvider := &cfgProviders[i]
+		switch cfgProvider.Name {
+		case "openrouter":
+			r.Register(NewOpenRouterProvider(cfgProvider))
+		case "openai":
+			r.Register(NewOpenAIProvider(cfgProvider))
+		case "anthropic":
+			r.Register(NewAnthropicProvider(cfgProvider))
+		case "nvidia":
+			r.Register(NewNvidiaProvider(cfgProvider))
+		case "gemini":
+			r.Register(NewGeminiProvider(cfgProvider))
+		}
+	}
 }

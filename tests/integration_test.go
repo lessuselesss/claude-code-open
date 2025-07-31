@@ -45,7 +45,7 @@ func TestProxyIntegration(t *testing.T) {
 
 	// Setup registry with actual providers - this will register the openrouter provider
 	registry := providers.NewRegistry()
-	registry.Initialize()
+	registry.Initialize(cfg.Providers)
 
 	// Create proxy handler
 	handler := handlers.NewProxyHandler(cfgMgr, registry, logger)

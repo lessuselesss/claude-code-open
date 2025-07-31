@@ -1,7 +1,11 @@
 {
   description = "A Nix-flake-based Go 1.22 development environment";
 
-  inputs.nixpkgs.url = "https://flakehub.com/f/NixOS/nixpkgs/0.1";
+  inputs = {
+    nixpkgs.url = "https://flakehub.com/f/NixOS/nixpkgs/0.1";
+    sops-nix.url = "github:Mic92/sops-nix";
+    sops-nix.inputs.nixpkgs.follows = "nixpkgs";
+  };
 
   outputs = inputs:
     let
@@ -37,7 +41,15 @@
 
             # Hot reload for Go development
             air
+
+            # For secrets management
+            sops
           ];
+
+          # Environment variables for sops
+          shellHook = ''
+            export SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt
+          '';
         };
       });
 

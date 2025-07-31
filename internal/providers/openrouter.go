@@ -4,22 +4,22 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+
+	"github.com/Davincible/claude-code-open/internal/config"
 )
 
 type OpenRouterProvider struct {
-	name     string
-	endpoint string
-	apiKey   string
+	Provider *config.Provider
 }
 
-func NewOpenRouterProvider() *OpenRouterProvider {
+func NewOpenRouterProvider(provider *config.Provider) *OpenRouterProvider {
 	return &OpenRouterProvider{
-		name: "openrouter",
+		Provider: provider,
 	}
 }
 
 func (p *OpenRouterProvider) Name() string {
-	return p.name
+	return p.Provider.Name
 }
 
 func (p *OpenRouterProvider) SupportsStreaming() bool {
@@ -27,15 +27,11 @@ func (p *OpenRouterProvider) SupportsStreaming() bool {
 }
 
 func (p *OpenRouterProvider) GetEndpoint() string {
-	if p.endpoint == "" {
-		return "https://api.openrouter.ai/v1/chat/completions"
-	}
-
-	return p.endpoint
+	return p.Provider.APIBase
 }
 
-func (p *OpenRouterProvider) SetAPIKey(key string) {
-	p.apiKey = key
+func (p *OpenRouterProvider) GetAPIKey() string {
+	return p.Provider.GetAPIKey()
 }
 
 func (p *OpenRouterProvider) IsStreaming(headers map[string][]string) bool {

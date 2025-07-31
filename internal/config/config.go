@@ -62,10 +62,27 @@ var (
 type Provider struct {
 	Name           string   `json:"name" yaml:"name"`
 	APIBase        string   `json:"api_base_url" yaml:"url,omitempty"`
-	APIKey         string   `json:"api_key" yaml:"api_key,omitempty"`
+	APIKey         any      `json:"api_key,omitempty" yaml:"api_key,omitempty"`
 	Models         []string `json:"models" yaml:"models,omitempty"`
 	ModelWhitelist []string `json:"model_whitelist,omitempty" yaml:"model_whitelist,omitempty"`
 	DefaultModels  []string `json:"default_models,omitempty" yaml:"default_models,omitempty"`
+
+	// Internal fields for round-robin
+	apiKeys  []string
+	keyIndex atomic.Uint32
+}
+
+// GetAPIKey returns an API key in a round-robin fashion.
+func (p *Provider) GetAPIKey() string {
+	if len(p.apiKeys) == 0 {
+		return ""
+	}
+	if len(p.apiKeys) == 1 {
+		return p.apiKeys[0]
+	}
+	// Atomically increment and get the index, then modulo for round-robin
+	idx := p.keyIndex.Add(1)
+	return p.apiKeys[int(idx-1)%len(p.apiKeys)]
 }
 
 type RouterConfig struct {
@@ -105,11 +122,11 @@ func (m *Manager) createMinimalConfig() Config {
 		Host: DefaultHost,
 		Port: DefaultPort,
 		Providers: []Provider{
-			{Name: "openrouter"},
-			{Name: "openai"},
-			{Name: "anthropic"},
-			{Name: "nvidia"},
-			{Name: "gemini"},
+			{Name: "openrouter", APIBase: DefaultProviderURLs["openrouter"]},
+			{Name: "openai", APIBase: DefaultProviderURLs["openai"]},
+			{Name: "anthropic", APIBase: DefaultProviderURLs["anthropic"]},
+			{Name: "nvidia", APIBase: DefaultProviderURLs["nvidia"]},
+			{Name: "gemini", APIBase: DefaultProviderURLs["gemini"]},
 		},
 		Router: RouterConfig{
 			Default:     "openrouter,anthropic/claude-3.5-sonnet",
@@ -149,7 +166,7 @@ func (m *Manager) Load() (*Config, error) {
 	}
 
 	// Apply defaults and validation
-	m.applyDefaults(&cfg)
+	m.ApplyDefaults(&cfg)
 
 	m.configValue.Store(&cfg)
 
@@ -186,7 +203,7 @@ func (m *Manager) loadJSON() (Config, error) {
 	return cfg, nil
 }
 
-func (m *Manager) applyDefaults(cfg *Config) {
+func (m *Manager) ApplyDefaults(cfg *Config) {
 	// Set basic defaults
 	if cfg.Port == 0 {
 		cfg.Port = DefaultPort
@@ -204,6 +221,20 @@ func (m *Manager) applyDefaults(cfg *Config) {
 		if provider.APIBase == "" {
 			if defaultURL, exists := DefaultProviderURLs[provider.Name]; exists {
 				provider.APIBase = defaultURL
+			}
+		}
+
+		// Process API keys
+		switch v := provider.APIKey.(type) {
+		case string:
+			if v != "" {
+				provider.apiKeys = []string{v}
+			}
+		case []any:
+			for _, key := range v {
+				if keyStr, ok := key.(string); ok && keyStr != "" {
+					provider.apiKeys = append(provider.apiKeys, keyStr)
+				}
 			}
 		}
 
@@ -386,7 +417,7 @@ func (m *Manager) CreateExampleYAML() error {
 	}
 
 	// Apply defaults to populate URLs and default models
-	m.applyDefaults(cfg)
+	m.ApplyDefaults(cfg)
 
 	return m.SaveAsYAML(cfg)
 }

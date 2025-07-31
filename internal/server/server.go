@@ -31,7 +31,8 @@ type Server struct {
 
 func New(configManager *config.Manager, logger *slog.Logger) *Server {
 	registry := providers.NewRegistry()
-	registry.Initialize()
+	cfg := configManager.Get()
+	registry.Initialize(cfg.Providers)
 
 	return &Server{
 		config:   configManager,

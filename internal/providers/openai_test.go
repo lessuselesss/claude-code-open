@@ -4,22 +4,25 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/Davincible/claude-code-open/internal/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestOpenAIProvider_BasicMethods(t *testing.T) {
-	provider := NewOpenAIProvider()
+	cfg := &config.Config{Providers: []config.Provider{{Name: "openai", APIKey: "test-key"}}}
+	cfgMgr := config.NewManager("")
+	cfgMgr.ApplyDefaults(cfg)
+	provider := NewOpenAIProvider(&cfg.Providers[0])
 
 	assert.Equal(t, "openai", provider.Name())
 	assert.True(t, provider.SupportsStreaming())
 
-	provider.SetAPIKey("test-key")
-	assert.Equal(t, "test-key", provider.apiKey)
+	assert.Equal(t, "test-key", provider.GetAPIKey())
 }
 
 func TestOpenAIProvider_IsStreaming(t *testing.T) {
-	provider := NewOpenAIProvider()
+	provider := NewOpenAIProvider(&config.Provider{Name: "openai"})
 
 	tests := []struct {
 		name     string
@@ -58,7 +61,7 @@ func TestOpenAIProvider_IsStreaming(t *testing.T) {
 }
 
 func TestOpenAIProvider_TransformRequest(t *testing.T) {
-	provider := NewOpenAIProvider()
+	provider := NewOpenAIProvider(&config.Provider{Name: "openai"})
 
 	// Test Anthropic to OpenAI request transformation
 	anthropicRequest := map[string]any{
@@ -134,7 +137,7 @@ func TestOpenAIProvider_TransformRequest(t *testing.T) {
 }
 
 func TestOpenAIProvider_Transform(t *testing.T) {
-	provider := NewOpenAIProvider()
+	provider := NewOpenAIProvider(&config.Provider{Name: "openai"})
 
 	openaiResponse := map[string]any{
 		"id":      "chatcmpl-123",
@@ -206,7 +209,7 @@ func TestOpenAIProvider_Transform(t *testing.T) {
 }
 
 func TestOpenAIProvider_ConvertStopReason(t *testing.T) {
-	provider := NewOpenAIProvider()
+	provider := NewOpenAIProvider(&config.Provider{Name: "openai"})
 
 	tests := []struct {
 		openaiReason      string
@@ -230,7 +233,7 @@ func TestOpenAIProvider_ConvertStopReason(t *testing.T) {
 }
 
 func TestOpenAIProvider_ToolCallsTransform(t *testing.T) {
-	provider := NewOpenAIProvider()
+	provider := NewOpenAIProvider(&config.Provider{Name: "openai"})
 
 	openaiResponse := map[string]any{
 		"id":      "chatcmpl-123",
@@ -315,7 +318,7 @@ func TestOpenAIProvider_ToolCallsTransform(t *testing.T) {
 }
 
 func TestOpenAIProvider_ErrorHandling(t *testing.T) {
-	provider := NewOpenAIProvider()
+	provider := NewOpenAIProvider(&config.Provider{Name: "openai"})
 
 	errorResponse := map[string]any{
 		"error": map[string]any{
@@ -344,7 +347,7 @@ func TestOpenAIProvider_ErrorHandling(t *testing.T) {
 }
 
 func TestOpenAIProvider_TransformStream(t *testing.T) {
-	provider := NewOpenAIProvider()
+	provider := NewOpenAIProvider(&config.Provider{Name: "openai"})
 	state := &StreamState{}
 
 	// Test message start chunk
@@ -428,7 +431,7 @@ func TestOpenAIProvider_TransformStream(t *testing.T) {
 }
 
 func TestOpenAIProvider_StreamingToolCalls(t *testing.T) {
-	provider := NewOpenAIProvider()
+	provider := NewOpenAIProvider(&config.Provider{Name: "openai"})
 	state := &StreamState{}
 
 	// First chunk with tool call start
@@ -500,7 +503,7 @@ func TestOpenAIProvider_StreamingToolCalls(t *testing.T) {
 }
 
 func TestOpenAIProvider_ConvertUsage(t *testing.T) {
-	provider := NewOpenAIProvider()
+	provider := NewOpenAIProvider(&config.Provider{Name: "openai"})
 
 	usage := map[string]any{
 		"prompt_tokens":     100,
@@ -521,7 +524,7 @@ func TestOpenAIProvider_ConvertUsage(t *testing.T) {
 }
 
 func TestOpenAIProvider_ConvertToolCallID(t *testing.T) {
-	provider := NewOpenAIProvider()
+	provider := NewOpenAIProvider(&config.Provider{Name: "openai"})
 
 	tests := []struct {
 		input    string

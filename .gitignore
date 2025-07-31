@@ -40,6 +40,7 @@ Thumbs.db
 # Configuration files (contain sensitive data)
 config.json
 .claude-code-router/
+.env.local
 
 # PID and reference files
 *.pid
@@ -52,3 +53,4 @@ temp/
 
 # Air hot reload
 build-errors.log
+result

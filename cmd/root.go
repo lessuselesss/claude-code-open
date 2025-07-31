@@ -3,6 +3,7 @@ package cmd
 import (
 	"errors"
 	"fmt"
+	"io"
 	"log/slog"
 	"os"
 	"path/filepath"
@@ -44,6 +45,16 @@ func init() {
 
 	baseDir = getConfigDirectory(homeDir)
 	cfgMgr = config.NewManager(baseDir)
+
+	rootCmd.PersistentFlags().BoolP("verbose", "v", false, "enable verbose logging")
+	rootCmd.PersistentFlags().BoolP("log-file", "l", false, "enable file logging")
+
+	// Add subcommands
+	rootCmd.AddCommand(startCmd)
+	rootCmd.AddCommand(stopCmd)
+	rootCmd.AddCommand(statusCmd)
+	rootCmd.AddCommand(codeCmd)
+	rootCmd.AddCommand(configCmd)
 }
 
 var rootCmd = &cobra.Command{
@@ -108,17 +119,7 @@ func directoryHasConfig(dir string) bool {
 	return false
 }
 
-func init() {
-	rootCmd.PersistentFlags().BoolP("verbose", "v", false, "enable verbose logging")
-	rootCmd.PersistentFlags().BoolP("log-file", "l", false, "enable file logging")
 
-	// Add subcommands
-	rootCmd.AddCommand(startCmd)
-	rootCmd.AddCommand(stopCmd)
-	rootCmd.AddCommand(statusCmd)
-	rootCmd.AddCommand(codeCmd)
-	rootCmd.AddCommand(configCmd)
-}
 
 func setupLogging(verbose, logFile bool) {
 	level := slog.LevelInfo
@@ -128,12 +129,24 @@ func setupLogging(verbose, logFile bool) {
 
 	opts := &slog.HandlerOptions{Level: level}
 
+	var handler slog.Handler
 	if logFile {
-		// TODO: Implement file logging
-		color.Yellow("File logging not yet implemented, using stdout")
+		logFilePath := filepath.Join(baseDir, "claude-code-open.log")
+		file, err := os.OpenFile(logFilePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+		if err != nil {
+			logger.Error("Failed to open log file", "path", logFilePath, "error", err)
+			// Fallback to stdout
+			handler = slog.NewTextHandler(os.Stdout, opts)
+		} else {
+			// Create a multi-writer to log to both file and stdout
+			multiWriter := io.MultiWriter(os.Stdout, file)
+			handler = slog.NewTextHandler(multiWriter, opts)
+			color.Green("Logging to file: %s", logFilePath)
+		}
+	} else {
+		handler = slog.NewTextHandler(os.Stdout, opts)
 	}
 
-	handler := slog.NewTextHandler(os.Stdout, opts)
 	logger = slog.New(handler)
 }
 

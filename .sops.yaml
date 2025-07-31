@@ -1,0 +1,3 @@
+creation_rules:
+  - path_regex: secrets.yaml
+    age: <your_age_public_key>

@@ -8,7 +8,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
-	"os"
+	
 	"strings"
 
 	"github.com/andybalholm/brotli"
@@ -82,8 +82,9 @@ func (h *ProxyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// Copy headers and set auth
 	req.Header = r.Header.Clone()
-	if providerConfig.APIKey != "" {
-		h.setAuthHeader(req, provider, providerConfig.APIKey)
+	apiKey := providerConfig.GetAPIKey()
+	if apiKey != "" {
+		h.setAuthHeader(req, provider, apiKey)
 	}
 
 	h.logger.Info("Proxying request",
@@ -296,17 +297,52 @@ func (h *ProxyHandler) handleResponse(w http.ResponseWriter, resp *http.Response
 }
 
 func (h *ProxyHandler) findProvider(modelName string, cfg *config.Config) (providers.Provider, *config.Provider, error) {
-	// Parse provider name from model (format: "provider,model" or just "model")
 	parts := strings.SplitN(modelName, ",", 2)
+	var providerName, actualModelName string
 
-	var providerName string
 	if len(parts) > 1 {
 		providerName = parts[0]
+		actualModelName = parts[1]
+	} else {
+		actualModelName = modelName
 	}
 
-	// Find provider config
-	var providerConfig *config.Provider
+	// If provider name is not explicit, search for the model in all providers
+	if providerName == "" {
+		for _, p := range cfg.Providers {
+			// Check both DefaultModels and Models lists
+			allModels := append(p.DefaultModels, p.Models...)
+			for _, m := range allModels {
+				if m == actualModelName {
+					providerName = p.Name
+					h.logger.Debug("Inferred provider for model", "model", actualModelName, "provider", providerName)
+					break
+				}
+			}
+			if providerName != "" {
+				break
+			}
+		}
+	}
 
+	// If still no provider, we have a problem
+	if providerName == "" {
+		// Fallback to default provider if model is not found in any provider list
+		if cfg.Router.Default != "" {
+			h.logger.Debug("Could not determine provider for model, falling back to default", "model", modelName, "default", cfg.Router.Default)
+			defaultParts := strings.SplitN(cfg.Router.Default, ",", 2)
+			if len(defaultParts) > 1 {
+				providerName = defaultParts[0]
+			}
+		}
+
+		if providerName == "" {
+			return nil, nil, fmt.Errorf("could not determine provider for model '%s' and no default is set", modelName)
+		}
+	}
+
+	// Now that we have a providerName, find its config
+	var providerConfig *config.Provider
 	for i, p := range cfg.Providers {
 		if p.Name == providerName {
 			providerConfig = &cfg.Providers[i]
@@ -314,46 +350,22 @@ func (h *ProxyHandler) findProvider(modelName string, cfg *config.Config) (provi
 		}
 	}
 
-	var provider providers.Provider
+	// This should not happen if the logic above is correct, but as a safeguard:
+	if providerConfig == nil {
+		return nil, nil, fmt.Errorf("configuration for provider '%s' not found", providerName)
+	}
 
-	if providerConfig != nil {
-		_provider, err := h.registry.GetByDomain(providerConfig.APIBase)
-		if err != nil {
-			return nil, nil, fmt.Errorf("no provider implementation for domain: %w", err)
-		}
-
-		provider = _provider
-	} else {
-		_provider, ok := h.registry.Get(providerName)
-		if !ok {
-			return nil, nil, fmt.Errorf("provider '%s' not found in registry", providerName)
-		}
-
-		providerConfig = &config.Provider{
-			Name:    _provider.Name(),
-			APIBase: _provider.GetEndpoint(),
-		}
-
-		provider = _provider
+	// Get the provider implementation from the registry
+	provider, ok := h.registry.Get(providerName)
+	if !ok {
+		return nil, nil, fmt.Errorf("provider '%s' not found in registry", providerName)
 	}
 
 	// Use provider-specific API key if available, otherwise fallback to CCO_API_KEY
-	var apiKey string
-	if providerConfig != nil {
-		apiKey = providerConfig.APIKey
-	}
+	
+	
 
-	if apiKey == "" {
-		if ccoAPIKey := os.Getenv("CCO_API_KEY"); ccoAPIKey != "" {
-			apiKey = ccoAPIKey
-
-			h.logger.Debug("Using CCO_API_KEY for provider", "provider", provider.Name())
-		}
-
-		providerConfig.APIKey = apiKey
-	}
-
-	provider.SetAPIKey(apiKey)
+	
 
 	return provider, providerConfig, nil
 }
